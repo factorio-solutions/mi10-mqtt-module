@@ -73,8 +73,7 @@ class MqttClient:
             if len(topic) > 1:
                 self._client.message_callback_add(topic[0], topic[1])
             self._client.subscribe(topic[0])
-        self._client.subscribe('mod/discovery/data-output')
-        self.__is_present()
+        # self.__is_present()
 
     def __is_present(self):
         self._client.subscribe('mod/presence')
