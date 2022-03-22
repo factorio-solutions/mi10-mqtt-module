@@ -1,6 +1,8 @@
 import configparser
 import json
 import logging
+from threading import Event
+
 from bson import json_util
 import paho.mqtt.client as mqtt
 from paho.mqtt.client import MQTTMessage
@@ -11,8 +13,9 @@ logger = logging.getLogger('mi10-mqtt-module' + '.mqtt.py')
 
 
 class MqttClient:
-    def __init__(self, host, port, username, password, pill2kill, topics: list, module_name='mod-module',
-                 bind_address='0.0.0.0'):
+    def __init__(self, host: str, port: int, username: str, password: str, pill2kill: Event, topics: list,
+                 module_name: str = 'mod-module',
+                 bind_address: str = '0.0.0.0', presence_frequency: int = 10):
         super().__init__()
         self.host = host
         self.pill2kill = pill2kill
@@ -22,6 +25,7 @@ class MqttClient:
         self._client = mqtt.Client(self.module_type)
         self._topics = [['mod/discovery/init', self._on_init], ] + topics
         self.rt = None
+        self.presence_frequency = presence_frequency
         if username is not None and password is not None:
             self._client.username_pw_set(username=username,
                                          password=password)
@@ -31,7 +35,7 @@ class MqttClient:
         self.start()
 
     def start(self):
-        self.rt = RepeatedTimer(10, self.publish, 'mod/presence', {'type': self.module_type})
+        self.rt = RepeatedTimer(self.presence_frequency, self.publish, 'mod/presence', {'type': self.module_type})
         self._client.loop_start()
 
     def stop(self):
