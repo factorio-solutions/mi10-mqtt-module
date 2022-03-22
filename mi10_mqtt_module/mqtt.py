@@ -25,16 +25,9 @@ class MqttClient:
     def connect(self):
         self.__setup_connection()
 
-    def set_psw(self, config_file):
-        config = configparser.ConfigParser()
-        config.read(config_file)
-        if 'main' in config:
-            is_secure = config['main'].getboolean('mqtt_secure', fallback=False)
-            if is_secure:
-                user_name = config['main'].get('user_name', fallback='')
-                password = config['main'].get('password', fallback='')
-                self._client.username_pw_set(username=user_name,
-                                             password=password)
+    def set_psw(self, user_name, password):
+        self._client.username_pw_set(username=user_name,
+                                     password=password)
 
     def start(self):
         self.rt = RepeatedTimer(10, self.publish, 'mod/presence', {'type': self.module_type})

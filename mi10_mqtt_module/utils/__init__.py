@@ -1,3 +1,3 @@
-__version__ = '0.1.0'
+__version__ = '2022.2.0'
 from .helpers import RepeatedTimer
 

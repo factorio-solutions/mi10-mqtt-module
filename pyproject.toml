@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mi10-mqtt-module"
-version = "0.1.0"
+version = "2022.2.0"
 description = ""
 authors = ["Petr Cezner <petr.cezner@factorio.cz>"]
 
