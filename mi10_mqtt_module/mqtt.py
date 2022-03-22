@@ -11,7 +11,8 @@ logger = logging.getLogger('__main__' + '.mqtt.py')
 
 
 class MqttClient:
-    def __init__(self, host, port, pill2kill, topics: list, module_name='mod-module', bind_address='0.0.0.0'):
+    def __init__(self, host, port, username, password, pill2kill, topics: list, module_name='mod-module',
+                 bind_address='0.0.0.0'):
         super().__init__()
         self.host = host
         self.pill2kill = pill2kill
@@ -21,13 +22,13 @@ class MqttClient:
         self._client = mqtt.Client(self.module_type)
         self._topics = [['mod/discovery/init', self._on_init], ] + topics
         self.rt = None
+        if username is not None and password is not None:
+            self._client.username_pw_set(username=username,
+                                         password=password)
 
     def connect(self):
         self.__setup_connection()
-
-    def set_psw(self, user_name, password):
-        self._client.username_pw_set(username=user_name,
-                                     password=password)
+        self.start()
 
     def start(self):
         self.rt = RepeatedTimer(10, self.publish, 'mod/presence', {'type': self.module_type})
