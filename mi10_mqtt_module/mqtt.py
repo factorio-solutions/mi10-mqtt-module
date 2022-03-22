@@ -5,9 +5,9 @@ from bson import json_util
 import paho.mqtt.client as mqtt
 from paho.mqtt.client import MQTTMessage
 
-from utils import RepeatedTimer
+from .utils import RepeatedTimer
 
-logger = logging.getLogger('__main__' + '.mqtt.py')
+logger = logging.getLogger('mi10-mqtt-module' + '.mqtt.py')
 
 
 class MqttClient:
