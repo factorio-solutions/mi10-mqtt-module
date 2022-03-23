@@ -13,8 +13,8 @@ def test_connection():
                         port=1883,
                         username=None,
                         password=None,
-                        pill2kill=Event(),
                         topics=[],
-                        module_name='test')
+                        module_name='test',
+                        run_presence=True)
     client.connect()
     client.publish('test', True, qos=1)
