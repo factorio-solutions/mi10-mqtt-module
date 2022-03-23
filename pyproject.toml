@@ -6,11 +6,11 @@ authors = ["Petr Cezner <petr.cezner@factorio.cz>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pymongo = "^3.12.0"
+pymongo = "^4.0.2"
 paho-mqtt = "^1.6.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^7.1.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
