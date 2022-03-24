@@ -64,7 +64,7 @@ class MqttClient:
         logger.debug(f"Received message: {str(message.payload)} on topic: {message.topic} with QoS: {str(message.qos)}")
         self._client.disconnect()
 
-    def publish(self, topic: str, response: dict, qos: int = 0) -> None:
+    def publish(self, topic: str, response: object, qos: int = 0) -> None:
         logger.debug(f'Publishing to topic: {topic} message: {response}')
         self._client.publish(topic, json_util.dumps(response), qos=qos)
 
@@ -73,7 +73,7 @@ class MqttClient:
         for topic in self._topics:
             if len(topic) > 1:
                 self._client.message_callback_add(topic[0], topic[1])
-            self._client.subscribe(topic[0])
+        self._client.subscribe([(topic[0], 2) for topic in self._topics])
         self.__is_present()
 
     def __is_present(self) -> None:
