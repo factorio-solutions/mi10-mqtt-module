@@ -22,7 +22,8 @@ class MqttClient:
                  bind_address: str = '0.0.0.0',
                  presence_frequency: int = 10,
                  run_presence: bool = True,
-                 presence_topic_name: str = 'mqtt_client') -> None:
+                 presence_topic_name: str = 'mqtt_client',
+                 qos_default: int = 2) -> None:
         super().__init__()
         self.host = host
         self.port = port
@@ -33,6 +34,7 @@ class MqttClient:
         self.presence_frequency = presence_frequency
         self.run_presence = run_presence
         self.presence_topic_name = presence_topic_name
+        self.qos_default = min(2, max(0, qos_default))  # allowed: 0, 1, 2
         self.rt = None
         if username is not None and password is not None:
             self._client.username_pw_set(username=username,
@@ -64,8 +66,10 @@ class MqttClient:
         logger.debug(f"Received message: {str(message.payload)} on topic: {message.topic} with QoS: {str(message.qos)}")
         self._client.disconnect()
 
-    def publish(self, topic: str, response: dict, qos: int = 0) -> None:
+    def publish(self, topic: str, response: object, qos: int = -1) -> None:
         logger.debug(f'Publishing to topic: {topic} message: {response}')
+        if qos == -1:
+            qos = self.qos_default
         self._client.publish(topic, json_util.dumps(response), qos=qos)
 
     def _on_connect(self, client, userdata, flags, rc) -> None:
@@ -73,7 +77,7 @@ class MqttClient:
         for topic in self._topics:
             if len(topic) > 1:
                 self._client.message_callback_add(topic[0], topic[1])
-            self._client.subscribe(topic[0])
+        self._client.subscribe([(topic[0], 2) for topic in self._topics])
         self.__is_present()
 
     def __is_present(self) -> None:
