@@ -2,7 +2,7 @@
 name = "mi10-mqtt-module"
 version = "2022.2.1+0"
 description = ""
-authors = ["Petr Cezner <petr.cezner@factorio.cz>"]
+authors = ["Petr Cezner <petr.cezner@factorio.cz>", "Martin Ron <martin.ron@factorio.cz"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
