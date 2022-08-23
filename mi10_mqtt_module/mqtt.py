@@ -1,12 +1,8 @@
-import json
 import logging
-from typing import List
-
 from bson import json_util
-import paho.mqtt.client as mqtt
-from paho.mqtt.client import MQTTMessage
 
-from .utils import RepeatedTimer
+import paho.mqtt.client as mqtt
+
 
 logger = logging.getLogger('mi10-mqtt-module' + '.mqtt.py')
 
@@ -17,12 +13,9 @@ class MqttClient:
                  port: int = 1883,
                  username: str = None,
                  password: str = None,
-                 topics: list = List,
+                 topics: list = None,
                  module_name: str = None,
                  bind_address: str = '0.0.0.0',
-                 presence_frequency: int = 10,
-                 run_presence: bool = True,
-                 presence_topic_name: str = 'mqtt_client',
                  qos_default: int = 2) -> None:
         super().__init__()
         self.host = host
@@ -31,11 +24,7 @@ class MqttClient:
         self.module_type = module_name
         self._client = mqtt.Client(self.module_type)
         self._topics = topics
-        self.presence_frequency = presence_frequency
-        self.run_presence = run_presence
-        self.presence_topic_name = presence_topic_name
         self.qos_default = min(2, max(0, qos_default))  # allowed: 0, 1, 2
-        self.rt = None
         if username is not None and password is not None:
             self._client.username_pw_set(username=username,
                                          password=password)
@@ -45,26 +34,15 @@ class MqttClient:
         self.start()
 
     def start(self) -> None:
-        if self.run_presence:
-            self.rt = RepeatedTimer(self.presence_frequency,
-                                    self.publish,
-                                    self.presence_topic_name,
-                                    {'type': self.module_type})
         self._client.loop_start()
 
     def stop(self) -> None:
         self._client.loop_stop()
-        if self.run_presence:
-            self.rt.stop()
         self._client.disconnect()
 
     def __setup_connection(self) -> None:
         self._client.on_connect = self._on_connect
         self._client.connect(host=self.host, port=self.port, bind_address=self.bind_address)
-
-    def _on_end(self, client, userdata, message: MQTTMessage) -> None:
-        logger.debug(f"Received message: {str(message.payload)} on topic: {message.topic} with QoS: {str(message.qos)}")
-        self._client.disconnect()
 
     def publish(self, topic: str, response: object, qos: int = -1) -> None:
         logger.debug(f'Publishing to topic: {topic} message: {response}')
@@ -78,11 +56,6 @@ class MqttClient:
             if len(topic) > 1:
                 self._client.message_callback_add(topic[0], topic[1])
         self._client.subscribe([(topic[0], 2) for topic in self._topics])
-        self.__is_present()
-
-    def __is_present(self) -> None:
-        self._client.subscribe(self.presence_topic_name)
-        self._client.publish(self.presence_topic_name, json_util.dumps({"type": self.module_type}))
 
     def _on_error(self) -> None:
-        pass
+        logger.error(f'MQTT communication error.')

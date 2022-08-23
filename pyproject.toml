@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "mi10-mqtt-module"
-version = "2022.2.1+0"
+version = "2022.3.0"
 description = ""
 authors = ["Petr Cezner <petr.cezner@factorio.cz>", "Martin Ron <martin.ron@factorio.cz"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pymongo = "^4.0.2"
 paho-mqtt = "^1.6.1"
+pymongo = "^4.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.1"
