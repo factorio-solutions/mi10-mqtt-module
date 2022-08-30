@@ -2,7 +2,7 @@ import logging
 from bson import json_util
 
 import paho.mqtt.client as mqtt
-
+import uuid
 
 logger = logging.getLogger('mi10-mqtt-module' + '.mqtt.py')
 
@@ -21,8 +21,8 @@ class MqttClient:
         self.host = host
         self.port = port
         self.bind_address = bind_address
-        self.module_type = module_name
-        self._client = mqtt.Client(self.module_type)
+        self.module_type = f'{module_name}_{uuid.uuid4()}'
+        self._client = mqtt.Client(client_id=self.module_type)
         self._topics = topics
         self.qos_default = min(2, max(0, qos_default))  # allowed: 0, 1, 2
         if username is not None and password is not None:
@@ -42,7 +42,11 @@ class MqttClient:
 
     def __setup_connection(self) -> None:
         self._client.on_connect = self._on_connect
-        self._client.connect(host=self.host, port=self.port, bind_address=self.bind_address)
+        self._client.on_disconnect = self.on_disconnect
+        self._client.connect(host=self.host,
+                             keepalive=60,
+                             port=self.port,
+                             bind_address=self.bind_address)
 
     def publish(self, topic: str, response: object, qos: int = -1) -> None:
         logger.debug(f'Publishing to topic: {topic} message: {response}')
@@ -51,11 +55,16 @@ class MqttClient:
         self._client.publish(topic, json_util.dumps(response), qos=qos)
 
     def _on_connect(self, client, userdata, flags, rc) -> None:
-        logger.info(f'Client connected to host {self.host} on port: {self.port}')
+        logger.warning(
+            f'Client connected to host {self.host} on port: {self.port}')
         for topic in self._topics:
             if len(topic) > 1:
                 self._client.message_callback_add(topic[0], topic[1])
         self._client.subscribe([(topic[0], 2) for topic in self._topics])
+
+    def on_disconnect(self, client, userdata, rc):
+        if rc != 0:
+            logger.error('Unexpected disconnection.')
 
     def _on_error(self) -> None:
         logger.error(f'MQTT communication error.')
